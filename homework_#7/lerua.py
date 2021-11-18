@@ -1,5 +1,8 @@
 import scrapy
 from scrapy.http import HtmlResponse
+from leruaparser.items import LeruaparserItem
+from scrapy.loader import ItemLoader
+
 
 class LeruaSpider(scrapy.Spider):
     name = 'lerua'
@@ -15,8 +18,9 @@ class LeruaSpider(scrapy.Spider):
             yield response.follow(link, callback=self.good_parse)
 
     def good_parse(self, response: HtmlResponse):
-        name = response.xpath('//h1/text()').get()
-        price = response.xpath('//*[@slot="primary-price"]//span[@slot="price"]/text()').get()
-        photos = response.xpath('//uc-pdp-media-carousel//picture//source[1][@srcset]/@srcset').getall()
-
-        print()
+        loader = ItemLoader(item=LeruaparserItem(), response=response)
+        loader.add_xpath('name', '//h1/text()')
+        loader.add_xpath('price', '//*[@slot="primary-price"]//span[@slot="price"]/text()')
+        loader.add_xpath('photos', '//uc-pdp-media-carousel//picture//source[1][@srcset]/@srcset')
+        loader.add_value('link', response.url)
+        yield loader.load_item()

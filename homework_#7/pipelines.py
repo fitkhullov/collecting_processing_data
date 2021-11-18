@@ -5,9 +5,29 @@
 
 
 # useful for handling different item types with a single interface
+import scrapy
 from itemadapter import ItemAdapter
-
+from scrapy.pipelines.images import ImagesPipeline
+import hashlib
+from scrapy.utils.python import to_bytes
 
 class LeruaparserPipeline:
     def process_item(self, item, spider):
         return item
+
+class LeruaPhotosPipeline(ImagesPipeline):
+    def get_media_requests(self, item, info):
+        if item['photos']:
+            for img in item['photos']:
+                try:
+                    yield scrapy.Request(img)
+                except Exception as e:
+                    print(e)
+
+    def item_completed(self, results, item, info):
+        item['photos'] = [itm[1] for itm in results if itm[0]]
+        return item  # возвращение элемента из текущего pipeline
+
+    def file_path(self, request, response=None, info=None, *, item=None):
+        image_guid = item['photos'].index(request.url)
+        return f'{item["name"]}/full/{image_guid}.jpg'
