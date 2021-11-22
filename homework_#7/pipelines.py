@@ -8,11 +8,18 @@
 import scrapy
 from itemadapter import ItemAdapter
 from scrapy.pipelines.images import ImagesPipeline
-import hashlib
-from scrapy.utils.python import to_bytes
+from pymongo import MongoClient
+from leruaparser.runner import query
 
 class LeruaparserPipeline:
+    def __init__(self):
+        collection = MongoClient('localhost', 27017)
+        self.mongo_base = collection['goods']
+
     def process_item(self, item, spider):
+        collection = self.mongo_base[query]
+        if not collection.find_one({'link': item['link']}):
+            collection.insert_one(item)
         return item
 
 class LeruaPhotosPipeline(ImagesPipeline):
@@ -30,4 +37,4 @@ class LeruaPhotosPipeline(ImagesPipeline):
 
     def file_path(self, request, response=None, info=None, *, item=None):
         image_guid = item['photos'].index(request.url)
-        return f'{item["name"]}/full/{image_guid}.jpg'
+        return f'{query}/{item["name"]}/full/{image_guid}.jpg'

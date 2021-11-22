@@ -4,10 +4,11 @@ from scrapy.settings import Settings
 from leruaparser.spiders.lerua import LeruaSpider
 from leruaparser import settings
 
+query = input('Введите запрос: ')
+
 if __name__ == '__main__':
     crawler_settings = Settings()
     crawler_settings.setmodule(settings)
-
     process = CrawlerProcess(settings=crawler_settings)
-    process.crawl(LeruaSpider, query='краска')
+    process.crawl(LeruaSpider, query=query)
     process.start()

@@ -13,6 +13,9 @@ class LeruaSpider(scrapy.Spider):
         self.start_urls = [f'https://leroymerlin.ru/search/?q={query}']
 
     def parse(self, response: HtmlResponse):
+        next_page = response.xpath('//a[contains(@aria-label, "Следующая страница")]/@href').get()
+        if next_page:
+            yield response.follow(next_page, callback=self.parse)
         links = response.xpath('//a[@data-qa="product-name"]')
         for link in links:
             yield response.follow(link, callback=self.good_parse)
